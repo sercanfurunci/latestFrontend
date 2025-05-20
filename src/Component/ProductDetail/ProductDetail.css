@@ -91,6 +91,7 @@
   cursor: pointer;
   transition: border 0.2s;
 }
+
 .thumbnail.selected {
   border: 2px solid #e9a480;
 }
@@ -589,39 +590,6 @@
   background: #a86c4b;
 }
 
-@media (max-width: 900px) {
-  .product-content {
-    flex-direction: column;
-    gap: 32px;
-  }
-  .seller-profile {
-    min-width: unset;
-    max-width: 100%;
-  }
-  .main-image {
-    width: 100%;
-    max-width: 340px;
-    height: auto;
-  }
-  .offers-section,
-  .product-extra-info {
-    padding: 16px 8px;
-  }
-  .offer-form label,
-  .offer-form input,
-  .offer-form button {
-    width: 100%;
-    min-width: unset;
-  }
-  .offer-form {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
-  }
-}
-
-// ... existing code ...
-
 .product-actions {
   display: flex;
   gap: 16px;
@@ -665,19 +633,7 @@
   font-size: 1.1rem;
 }
 
-@media (max-width: 900px) {
-  .product-actions {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .product-actions button {
-    width: 100%;
-    justify-content: center;
-  }
-}
-
-/* Modal Overlay */
+/* Modal Styles */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -691,7 +647,6 @@
   z-index: 1000;
 }
 
-/* Modal Content */
 .modal-content {
   background: #fff7f0;
   border-radius: 18px;
@@ -750,50 +705,61 @@
   outline: none;
 }
 
-.modal-content button[type="submit"] {
-  background: #e9a480;
-  color: #fff;
+/* Modal Buttons */
+.modal-buttons {
+  display: flex;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.save-button,
+.cancel-button {
+  flex: 1;
+  padding: 14px 24px;
   border: none;
-  border-radius: 10px;
-  padding: 10px 0;
-  font-size: 1.08rem;
+  border-radius: 12px;
+  font-size: 1.1rem;
   font-weight: 700;
   cursor: pointer;
-  margin-top: 8px;
-  transition: background 0.2s;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 2px 8px rgba(233, 164, 128, 0.13);
 }
 
-.modal-content button[type="submit"]:hover {
+.save-button {
+  background: #e9a480;
+  color: #fff;
+}
+
+.save-button:hover {
   background: #a86c4b;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(233, 164, 128, 0.18);
 }
 
-.modal-content button[type="button"] {
+.cancel-button {
   background: #faf3ed;
   color: #a86c4b;
-  border: 1.5px solid #e9a480;
-  border-radius: 10px;
-  padding: 10px 0;
-  font-size: 1.08rem;
-  font-weight: 700;
-  cursor: pointer;
-  margin-top: 8px;
-  transition: background 0.2s, color 0.2s;
+  border: 2px solid #e9a480;
 }
 
-.modal-content button[type="button"]:hover {
+.cancel-button:hover {
   background: #e9a480;
   color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(233, 164, 128, 0.18);
 }
 
-@media (max-width: 600px) {
-  .modal-content {
-    padding: 18px 6px 12px 6px;
-    min-width: unset;
-    width: 98vw;
-  }
+.save-button:active,
+.cancel-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(233, 164, 128, 0.2);
 }
 
-/* Ürünü Düzenle Butonu */
+/* Edit Product Button */
 .edit-product-button {
   background: #e9a480;
   color: #fff;
@@ -836,4 +802,61 @@
   align-items: center;
   gap: 8px;
   box-shadow: 0 2px 8px rgba(233, 164, 128, 0.08);
+}
+
+/* Responsive Styles */
+@media (max-width: 900px) {
+  .product-content {
+    flex-direction: column;
+    gap: 32px;
+  }
+  .seller-profile {
+    min-width: unset;
+    max-width: 100%;
+  }
+  .main-image {
+    width: 100%;
+    max-width: 340px;
+    height: auto;
+  }
+  .offers-section,
+  .product-extra-info {
+    padding: 16px 8px;
+  }
+  .offer-form label,
+  .offer-form input,
+  .offer-form button {
+    width: 100%;
+    min-width: unset;
+  }
+  .offer-form {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .product-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .product-actions button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 600px) {
+  .modal-content {
+    padding: 18px 6px 12px 6px;
+    min-width: unset;
+    width: 98vw;
+  }
+  .modal-buttons {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .save-button,
+  .cancel-button {
+    width: 100%;
+    padding: 12px 20px;
+  }
 }

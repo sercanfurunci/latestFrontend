@@ -710,61 +710,96 @@ const ProductDetail = () => {
         </button>
       )}
       {showEditModal && (
-        <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3>Ürünü Düzenle</h3>
-            <form onSubmit={handleEditSubmit}>
-              <input
-                value={editFormData.title}
-                onChange={(e) =>
-                  setEditFormData({ ...editFormData, title: e.target.value })
-                }
-                required
-              />
-              <textarea
-                value={editFormData.description}
-                onChange={(e) =>
-                  setEditFormData({
-                    ...editFormData,
-                    description: e.target.value,
-                  })
-                }
-                required
-              />
-              <input
-                type="number"
-                value={editFormData.price}
-                onChange={(e) =>
-                  setEditFormData({ ...editFormData, price: e.target.value })
-                }
-                required
-              />
-              <input
-                type="number"
-                value={editFormData.stock}
-                onChange={(e) =>
-                  setEditFormData({ ...editFormData, stock: e.target.value })
-                }
-                required
-              />
-              <textarea
-                value={editFormData.shippingDetails}
-                onChange={(e) =>
-                  setEditFormData({
-                    ...editFormData,
-                    shippingDetails: e.target.value,
-                  })
-                }
-              />
-              {/* Kategori seçimi ve diğer alanlar */}
-              <button type="submit">Kaydet</button>
-              <button type="button" onClick={() => setShowEditModal(false)}>
-                İptal
-              </button>
-            </form>
-          </div>
+  <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
+    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+      <h3>Ürünü Düzenle</h3>
+      <form onSubmit={handleEditSubmit}>
+        <div className="form-group">
+          <label>Ürün Adı:</label>
+          <input
+            value={editFormData.title}
+            onChange={(e) =>
+              setEditFormData({ ...editFormData, title: e.target.value })
+            }
+            required
+            placeholder="Ürün adını girin"
+          />
         </div>
-      )}
+
+        <div className="form-group">
+          <label>Ürün Açıklaması:</label>
+          <textarea
+            value={editFormData.description}
+            onChange={(e) =>
+              setEditFormData({
+                ...editFormData,
+                description: e.target.value,
+              })
+            }
+            required
+            placeholder="Ürün açıklamasını girin"
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Fiyat (TL):</label>
+          <input
+            type="number"
+            value={editFormData.price}
+            onChange={(e) =>
+              setEditFormData({ ...editFormData, price: e.target.value })
+            }
+            required
+            min="0"
+            step="0.01"
+            placeholder="Ürün fiyatını girin"
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Stok Miktarı:</label>
+          <input
+            type="number"
+            value={editFormData.stock}
+            onChange={(e) =>
+              setEditFormData({ ...editFormData, stock: e.target.value })
+            }
+            required
+            min="0"
+            placeholder="Stok miktarını girin"
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Kargo Detayları:</label>
+          <textarea
+            value={editFormData.shippingDetails}
+            onChange={(e) =>
+              setEditFormData({
+                ...editFormData,
+                shippingDetails: e.target.value,
+              })
+            }
+            placeholder="Kargo detaylarını girin"
+          />
+        </div>
+
+       
+
+        <div className="modal-buttons">
+          <button type="submit" className="save-button">Kaydet</button>
+          <button 
+            type="button" 
+            onClick={() => setShowEditModal(false)}
+            className="cancel-button"
+          >
+            İptal
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+)}
       {/* TEKLİF FORMU ve TEKLİFLER */}
 
       <div className="offers-section">

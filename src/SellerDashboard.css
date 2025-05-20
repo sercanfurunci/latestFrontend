@@ -328,10 +328,10 @@
 /* Yeni Ürün Ekleme Butonu */
 .add-product-button {
   position: fixed;
-  bottom: 24px;
+  bottom: 85px;
   right: 24px;
-  background: #e9a480;
-  color: white;
+  background: white;
+  color: #e9a480;
   border: none;
   padding: 16px 32px;
   border-radius: 28px;
@@ -654,4 +654,272 @@
 .follower-email {
   color: #8a8a8a;
   font-size: 0.95rem;
+}
+
+/* Modal Butonları */
+.modal-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 24px;
+  padding: 16px 0;
+}
+
+.save-button,
+.cancel-button {
+  flex: 1;
+  padding: 14px 24px;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 2px 8px rgba(233, 164, 128, 0.13);
+}
+
+.save-button {
+  background: #e9a480;
+  color: #fff;
+}
+
+.save-button:hover {
+  background: #a86c4b;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(233, 164, 128, 0.18);
+}
+
+.cancel-button {
+  background: #faf3ed;
+  color: #a86c4b;
+  border: 2px solid #e9a480;
+}
+
+.cancel-button:hover {
+  background: #e9a480;
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(233, 164, 128, 0.18);
+}
+
+.save-button:active,
+.cancel-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(233, 164, 128, 0.2);
+}
+
+/* Form Butonları */
+.form-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 24px;
+  padding: 16px 0;
+}
+
+/* Ürün Kartı Butonları */
+.product-actions {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  border-top: 1px solid rgba(233, 164, 128, 0.2);
+  margin-top: auto;
+}
+
+.edit-button,
+.delete-button {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 2px 8px rgba(233, 164, 128, 0.13);
+}
+
+.edit-button {
+  background: #e9a480;
+  color: #fff;
+}
+
+.edit-button:hover {
+  background: #a86c4b;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(233, 164, 128, 0.18);
+}
+
+.delete-button {
+  background: #ff6b6b;
+  color: #fff;
+}
+
+.delete-button:hover {
+  background: #ff5252;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(255, 107, 107, 0.18);
+}
+
+/* Yeni Ürün Ekleme Butonu */
+.add-product-button {
+  position: fixed;
+  bottom: 85px;
+  right: 24px;
+  background: white;
+  color: #e9a480;
+  border: none;
+  padding: 16px 32px;
+  border-radius: 28px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(233, 164, 128, 0.2);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 100;
+}
+
+.add-product-button:hover {
+  background: #a86c4b;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(233, 164, 128, 0.3);
+}
+
+.add-product-button:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(233, 164, 128, 0.2);
+}
+
+/* Profil Düzenleme Butonu */
+.edit-profile-button {
+  background: #e9a480;
+  color: #fff;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(233, 164, 128, 0.13);
+}
+
+.edit-profile-button:hover {
+  background: #a86c4b;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(233, 164, 128, 0.18);
+}
+
+.edit-profile-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(233, 164, 128, 0.2);
+}
+
+/* Fiyat Önerisi Butonu */
+.suggest-price-button {
+  background: #e9a480;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 8px rgba(233, 164, 128, 0.13);
+}
+
+.suggest-price-button:hover {
+  background: #a86c4b;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(233, 164, 128, 0.18);
+}
+
+.suggest-price-button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Fiyat Uygula Butonu */
+.apply-price-button {
+  background: #e9a480;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 8px rgba(233, 164, 128, 0.13);
+}
+
+.apply-price-button:hover {
+  background: #a86c4b;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(233, 164, 128, 0.18);
+}
+
+/* Responsive Tasarım */
+@media (max-width: 768px) {
+  .modal-actions,
+  .form-actions {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .save-button,
+  .cancel-button {
+    width: 100%;
+    padding: 12px 20px;
+  }
+
+  .product-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .edit-button,
+  .delete-button {
+    width: 100%;
+    padding: 10px;
+  }
+
+  .add-product-button {
+    padding: 12px 24px;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .edit-profile-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .suggest-price-button,
+  .apply-price-button {
+    width: 100%;
+    justify-content: center;
+  }
 }
