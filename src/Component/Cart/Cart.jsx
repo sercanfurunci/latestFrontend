@@ -9,6 +9,8 @@ const Cart = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [shippingAddress, setShippingAddress] = useState("");
+  const [addressError, setAddressError] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -22,11 +24,11 @@ const Cart = () => {
         navigate("/login");
         return;
       }
-
       const response = await axios.get("http://localhost:8080/api/v1/cart", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setCartItems(response.data);
+      // Sadece ilk ürünü göster
+      setCartItems(response.data.length > 0 ? [response.data[0]] : []);
     } catch (err) {
       setError("Sepet bilgileri alınamadı.");
     } finally {
@@ -43,7 +45,7 @@ const Cart = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      await fetchCartItems(); // Sepeti yeniden yükle
+      await fetchCartItems();
     } catch (err) {
       alert("Ürün sepetten çıkarılamadı.");
     }
@@ -51,7 +53,6 @@ const Cart = () => {
 
   const handleQuantityChange = async (productId, newQuantity) => {
     if (newQuantity < 1) return;
-
     try {
       const token = localStorage.getItem("token");
       await axios.put(
@@ -61,7 +62,7 @@ const Cart = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      await fetchCartItems(); // Sepeti yeniden yükle
+      await fetchCartItems();
     } catch (err) {
       alert("Miktar güncellenemedi.");
     }
@@ -77,16 +78,15 @@ const Cart = () => {
   // SİPARİŞ OLUŞTURMA
   const handleCheckout = async () => {
     if (cartItems.length === 0) return;
-    const shippingAddress = prompt("Teslimat adresinizi girin:");
-    if (!shippingAddress) return;
-
+    if (!shippingAddress.trim()) {
+      setAddressError("Teslimat adresi zorunludur.");
+      return;
+    }
+    setAddressError("");
     setCheckoutLoading(true);
     try {
       const token = localStorage.getItem("token");
-      // Her ürün için ayrı sipariş oluşturulacak şekilde backend'e istek atıyoruz
       for (const item of cartItems) {
-        // Eğer tekliften geldiyse offerId, yoksa null gönder
-        const offerId = item.product.acceptedOfferId || null; // Eğer backend'de böyle bir alan varsa
         await axios.post(
           "http://localhost:8080/api/v1/buyer/orders",
           {
@@ -99,9 +99,10 @@ const Cart = () => {
           }
         );
       }
-      alert("Sipariş(ler) başarıyla oluşturuldu!");
-      await fetchCartItems();
-      // İsterseniz navigate ile siparişlerim sayfasına yönlendirebilirsiniz:
+      alert("Sipariş başarıyla oluşturuldu!");
+      // Sepeti temizle
+      setCartItems([]);
+      setShippingAddress("");
       navigate("/orders");
     } catch (err) {
       alert(
@@ -109,7 +110,6 @@ const Cart = () => {
       );
     } finally {
       setCheckoutLoading(false);
-      fetchCartItems();
     }
   };
 
@@ -165,24 +165,6 @@ const Cart = () => {
                 <div className="cart-item-details">
                   <h3>{item.product.title}</h3>
                   <p className="cart-item-price">{item.price} TL</p>
-                  <div className="cart-item-quantity">
-                    <button
-                      onClick={() =>
-                        handleQuantityChange(item.product.id, item.quantity - 1)
-                      }
-                      disabled={item.quantity <= 1}
-                    >
-                      -
-                    </button>
-                    <span>{item.quantity}</span>
-                    <button
-                      onClick={() =>
-                        handleQuantityChange(item.product.id, item.quantity + 1)
-                      }
-                    >
-                      +
-                    </button>
-                  </div>
                 </div>
                 <button
                   className="cart-item-remove"
@@ -198,6 +180,22 @@ const Cart = () => {
             <div className="cart-total">
               <span>Toplam:</span>
               <span>{calculateTotal()} TL</span>
+            </div>
+            <div className="cart-address-input">
+              <label htmlFor="shippingAddress">Teslimat Adresi:</label>
+              <input
+                id="shippingAddress"
+                type="text"
+                value={shippingAddress}
+                onChange={(e) => setShippingAddress(e.target.value)}
+                placeholder="Adresinizi girin"
+                className="cart-address-field"
+                disabled={checkoutLoading}
+                required
+              />
+              {addressError && (
+                <div className="cart-address-error">{addressError}</div>
+              )}
             </div>
             <button
               className="cart-checkout-button"

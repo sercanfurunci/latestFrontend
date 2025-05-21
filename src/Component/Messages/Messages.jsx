@@ -14,15 +14,19 @@ const Messages = ({ user }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
     if (userId) {
       fetchConversation();
     }
     // eslint-disable-next-line
-  }, [userId]);
+  }, [userId, user]);
 
   const fetchConversation = async () => {
     const token = localStorage.getItem("token");
-    if (!token || !userId) return;
+    if (!token || !userId || !user) return;
     try {
       const res = await axios.get(
         `${API_URL}/messages/conversation/${userId}`,
@@ -43,7 +47,7 @@ const Messages = ({ user }) => {
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() || !user) return;
     const token = localStorage.getItem("token");
     try {
       await axios.post(
@@ -62,6 +66,10 @@ const Messages = ({ user }) => {
       alert("Mesaj gönderilemedi.");
     }
   };
+
+  if (!user) {
+    return null;
+  }
 
   if (error) {
     return <div className="messages-error">{error}</div>;

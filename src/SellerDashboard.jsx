@@ -25,6 +25,8 @@ const SellerDashboard = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [suggestedPrice, setSuggestedPrice] = useState(null);
   const [followers, setFollowers] = useState([]);
+  const [info, setInfo] = useState(null);
+  const [error, setError] = useState(null);
 
   const [suggesting, setSuggesting] = useState(false);
   const [editImages, setEditImages] = useState([]);
@@ -39,22 +41,7 @@ const SellerDashboard = () => {
     type: "FOOD",
     shippingDetails: "",
   });
-  //followers
-  const fetchFollowers = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
-    try {
-      const res = await axios.get(
-        "http://localhost:8080/api/v1/seller/followers",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      setFollowers(res.data);
-    } catch (err) {
-      setFollowers([]);
-    }
-  };
+
   // Yeni ürün ekleme state'leri
   const [showAddProductModal, setShowAddProductModal] = useState(false);
   const [showProfileEditModal, setShowProfileEditModal] = useState(false);
@@ -69,7 +56,6 @@ const SellerDashboard = () => {
   });
 
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   // Sekme yönetimi ve orders
   const [activeTab, setActiveTab] = useState("products");
@@ -77,7 +63,7 @@ const SellerDashboard = () => {
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [ordersError, setOrdersError] = useState(null);
 
-  // handleEditSubmit fonksiyonunu en başa taşıyalım
+  // handleEditSubmit fonksiyonu
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -106,7 +92,7 @@ const SellerDashboard = () => {
             }
           );
         } catch (imageError) {
-          alert(
+          setError(
             "Ürün güncellendi fakat görseller yüklenirken hata oluştu: " +
               (imageError.response?.data || imageError.message)
           );
@@ -123,16 +109,18 @@ const SellerDashboard = () => {
       setEditImages([]);
       setSuggestedPrice(null);
       setSuggesting(false);
-      alert("Ürün başarıyla güncellendi");
+      setInfo(
+        "Ürün başarıyla güncellendi. Önemli değişiklikler yapıldıysa admin onayına gönderilecektir."
+      );
     } catch (error) {
-      alert(
+      setError(
         "Ürün güncellenirken bir hata oluştu: " +
           (error.response?.data?.message || error.message)
       );
     }
   };
 
-  // handleEdit fonksiyonunu da handleEditSubmit'ten sonra tanımlayalım
+  // handleEdit fonksiyonu
   const handleEdit = (product) => {
     setSelectedProduct(product);
     setEditFormData({
@@ -140,7 +128,7 @@ const SellerDashboard = () => {
       description: product.description,
       price: product.price,
       stock: product.stock,
-      status: product.status || "AVAILABLE",
+      status: product.status || "PENDING_REVIEW",
       categoryId: product.category?.id || "",
       type: product.type || "FOOD",
       shippingDetails: product.shippingDetails || "",
@@ -152,8 +140,8 @@ const SellerDashboard = () => {
   useEffect(() => {
     checkAuthAndFetchData();
   }, []);
+
   useEffect(() => {
-    // ...diğer fetchler...
     if (user && user.userType === "SELLER") {
       fetchFollowers();
     }
@@ -163,7 +151,6 @@ const SellerDashboard = () => {
     if (activeTab === "orders") {
       fetchOrders();
     }
-    // eslint-disable-next-line
   }, [activeTab]);
 
   const checkAuthAndFetchData = async () => {
@@ -222,6 +209,16 @@ const SellerDashboard = () => {
     }
   };
 
+  const fetchFollowers = async () => {
+    try {
+      const response = await api.get("/api/v1/seller/followers");
+      setFollowers(response.data);
+    } catch (error) {
+      console.error("Takipçiler yüklenirken hata:", error);
+      setFollowers([]);
+    }
+  };
+
   const fetchOrders = async () => {
     setOrdersLoading(true);
     setOrdersError(null);
@@ -257,6 +254,7 @@ const SellerDashboard = () => {
       const response = await api.put(`/api/v1/users/${user.id}`, formData);
       setUser(response.data);
       setShowProfileEditModal(false);
+      setInfo("Profil başarıyla güncellendi.");
     } catch (err) {
       console.error("Profil güncellenirken hata:", err);
       setError("Profil güncellenirken bir hata oluştu.");
@@ -284,9 +282,9 @@ const SellerDashboard = () => {
       try {
         await api.delete(`/api/v1/seller/products/${productId}`);
         setProducts(products.filter((product) => product.id !== productId));
-        alert("Ürün başarıyla silindi");
+        setInfo("Ürün başarıyla silindi.");
       } catch (error) {
-        alert("Ürün silinirken bir hata oluştu");
+        setError("Ürün silinirken bir hata oluştu: " + error.message);
       }
     }
   };
@@ -294,6 +292,7 @@ const SellerDashboard = () => {
   const handleNewProductSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+    setInfo(null);
     if (newProduct.description.length < 10) {
       setError("Ürün açıklaması en az 10 karakter olmalıdır!");
       return;
@@ -347,6 +346,9 @@ const SellerDashboard = () => {
         shippingDetails: "",
         images: [],
       });
+      setInfo(
+        "Ürününüz admin onayına gönderildi. Onaylandıktan sonra satışa açılacaktır."
+      );
     } catch (error) {
       setError(
         error.response?.data?.message || "Ürün eklenirken bir hata oluştu."
@@ -367,7 +369,7 @@ const SellerDashboard = () => {
       });
       setSuggestedPrice(response.data.suggestedPrice);
     } catch (error) {
-      alert(error.response?.data?.error || "Fiyat önerisi alınamadı.");
+      setError(error.response?.data?.error || "Fiyat önerisi alınamadı.");
     }
     setSuggesting(false);
   };
@@ -386,12 +388,15 @@ const SellerDashboard = () => {
       (product.category &&
         product.category.id &&
         product.category.id.toString() === productCategoryFilter);
-    const hasStock = Number(product.stock) > 0;
-    return matchesSearch && matchesCategory && hasStock;
+    return matchesSearch && matchesCategory;
   });
 
   return (
     <div className="seller-dashboard">
+      {/* Bilgi ve Hata Mesajları */}
+      {info && <div className="info-message">{info}</div>}
+      {error && <div className="error-message">{error}</div>}
+
       {/* Profil Başlık Bölümü */}
       <div className="profile-header">
         <div className="profile-info-container">
@@ -460,16 +465,14 @@ const SellerDashboard = () => {
         >
           Favoriler (0)
         </div>
-        <div>
-          {user && user.userType === "SELLER" && (
-            <div
-              className={`tab ${activeTab === "followers" ? "active" : ""}`}
-              onClick={() => setActiveTab("followers")}
-            >
-              Takipçilerim ({followers.length})
-            </div>
-          )}
-        </div>
+        {user && user.userType === "SELLER" && (
+          <div
+            className={`tab ${activeTab === "followers" ? "active" : ""}`}
+            onClick={() => setActiveTab("followers")}
+          >
+            Takipçilerim ({followers.length})
+          </div>
+        )}
       </div>
 
       {/* Filtreler ve Ürünler */}
@@ -519,7 +522,9 @@ const SellerDashboard = () => {
                   <div className="product-status-badge">
                     {product.status === "AVAILABLE" && "Satışta"}
                     {product.status === "SOLD" && "Satıldı"}
-                    {product.status === "PENDING_REVIEW" && "İncelemede"}
+                    {product.status === "PENDING_REVIEW" &&
+                      "İncelemede (Admin Onayı Bekliyor)"}
+                    {product.status === "REJECTED" && "Reddedildi"}
                   </div>
                 </div>
                 <div className="product-info">
@@ -886,7 +891,7 @@ const SellerDashboard = () => {
                 />
               </div>
               <div className="form-group">
-                <label>Ürün Görselleri</label>
+                <label>Ürün Görseli</label>
                 <input
                   type="file"
                   accept="image/jpeg,image/png,image/gif"
@@ -1032,20 +1037,19 @@ const SellerDashboard = () => {
               </div>
               <div className="form-group">
                 <label>Durum</label>
-                <select
-                  value={editFormData.status}
-                  onChange={(e) =>
-                    setEditFormData({
-                      ...editFormData,
-                      status: e.target.value,
-                    })
+                <input
+                  type="text"
+                  value={
+                    editFormData.status === "AVAILABLE"
+                      ? "Satışta"
+                      : editFormData.status === "PENDING_REVIEW"
+                      ? "İncelemede (Admin Onayı Bekliyor)"
+                      : editFormData.status === "REJECTED"
+                      ? "Reddedildi"
+                      : editFormData.status
                   }
-                  required
-                >
-                  <option value="AVAILABLE">Satışta</option>
-                  <option value="SOLD">Satıldı</option>
-                  <option value="PENDING_REVIEW">İncelemede</option>
-                </select>
+                  disabled
+                />
               </div>
               <div className="form-group">
                 <label>Kargo Detayları</label>
@@ -1062,12 +1066,13 @@ const SellerDashboard = () => {
                 />
               </div>
               <div className="form-group">
-                <label>Ürün Görselleri</label>
+                <label>Ürün Görseli</label>
                 <input
                   type="file"
                   accept="image/jpeg,image/png,image/gif"
-                  multiple
-                  onChange={(e) => setEditImages(Array.from(e.target.files))}
+                  onChange={(e) =>
+                    setEditImages(e.target.files[0] ? [e.target.files[0]] : [])
+                  }
                 />
                 <small className="help-text">
                   Desteklenen formatlar: JPG, JPEG, PNG, GIF. Maksimum dosya
@@ -1075,11 +1080,11 @@ const SellerDashboard = () => {
                 </small>
                 <div className="image-preview">
                   {selectedProduct.images &&
-                    selectedProduct.images.map((image, idx) => (
+                    selectedProduct.images.length > 0 &&
+                    editImages.length === 0 && (
                       <img
-                        key={idx}
-                        src={`http://localhost:8080${image}`}
-                        alt={`Mevcut Görsel ${idx + 1}`}
+                        src={`http://localhost:8080${selectedProduct.images[0]}`}
+                        alt="Mevcut Görsel"
                         style={{
                           maxWidth: 80,
                           maxHeight: 80,
@@ -1087,21 +1092,19 @@ const SellerDashboard = () => {
                           marginRight: 8,
                         }}
                       />
-                    ))}
-                  {editImages.length > 0 &&
-                    editImages.map((file, idx) => (
-                      <img
-                        key={`new-${idx}`}
-                        src={URL.createObjectURL(file)}
-                        alt={`Yeni Görsel ${idx + 1}`}
-                        style={{
-                          maxWidth: 80,
-                          maxHeight: 80,
-                          objectFit: "cover",
-                          marginRight: 8,
-                        }}
-                      />
-                    ))}
+                    )}
+                  {editImages.length > 0 && (
+                    <img
+                      src={URL.createObjectURL(editImages[0])}
+                      alt="Yeni Görsel"
+                      style={{
+                        maxWidth: 80,
+                        maxHeight: 80,
+                        objectFit: "cover",
+                        marginRight: 8,
+                      }}
+                    />
+                  )}
                 </div>
               </div>
               <div className="modal-actions">

@@ -247,9 +247,13 @@
 
 .following-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 1.5rem;
-  padding: 1rem 0;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 24px;
+  margin: 20px auto 0 auto;
+  padding: 0 24px;
+  width: 100%;
+  box-sizing: border-box;
+  justify-items: start;
 }
 
 .favorites-grid {
@@ -579,4 +583,47 @@
   .product-card {
     max-width: 100%;
   }
+}
+.favorites-grid,
+.following-grid {
+  justify-items: start !important;
+  margin-left: 0 !important;
+  margin-right: auto !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  gap: 12px !important;
+}
+
+.product-card,
+.seller-card {
+  margin: 0 !important;
+  max-width: 220px; /* veya ihtiyaca göre 200-240px arası */
+}
+.seller-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  align-items: stretch; /* Ekle */
+}
+
+.view-store-button,
+.unfollow-button {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.favorites-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  justify-items: start;
+  align-items: start;
+}
+
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  margin: 0 auto;
+  justify-self: center;
 }

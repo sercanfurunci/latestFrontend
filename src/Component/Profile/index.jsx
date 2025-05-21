@@ -13,6 +13,7 @@ const Profile = () => {
   const [activeTab, setActiveTab] = useState("profile");
   const [favorites, setFavorites] = useState([]);
   const [following, setFollowing] = useState([]);
+  const [orderedProductIds, setOrderedProductIds] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -28,6 +29,7 @@ const Profile = () => {
     fetchProfile();
     fetchFavorites();
     fetchFollowing();
+    fetchOrders();
   }, [id]);
 
   const fetchProfile = async () => {
@@ -38,7 +40,6 @@ const Profile = () => {
         setLoading(false);
         return;
       }
-
       const response = await axios.get(
         `http://localhost:8080/api/v1/users/${id}`,
         {
@@ -47,7 +48,6 @@ const Profile = () => {
           },
         }
       );
-
       setUser(response.data);
       setFormData({
         firstName: response.data.firstName,
@@ -59,7 +59,6 @@ const Profile = () => {
       setLoading(false);
     } catch (error) {
       setError("Profil bilgileri yüklenirken bir hata oluştu.");
-      console.error("Profil verisi alınamadı:", error);
       setLoading(false);
     }
   };
@@ -68,8 +67,6 @@ const Profile = () => {
     try {
       const token = localStorage.getItem("token");
       const userType = localStorage.getItem("userType");
-
-      // Sadece BUYER rolündeki kullanıcılar için favorileri getir
       if (userType === "BUYER") {
         const response = await axios.get(
           `http://localhost:8080/api/v1/buyer/favorites`,
@@ -80,7 +77,7 @@ const Profile = () => {
         setFavorites(response.data);
       }
     } catch (error) {
-      console.error("Favoriler yüklenirken hata:", error);
+      setFavorites([]);
     }
   };
 
@@ -88,8 +85,6 @@ const Profile = () => {
     try {
       const token = localStorage.getItem("token");
       const userType = localStorage.getItem("userType");
-
-      // Sadece BUYER rolündeki kullanıcılar için takip edilenleri getir
       if (userType === "BUYER") {
         const response = await axios.get(
           `http://localhost:8080/api/v1/buyer/following`,
@@ -100,13 +95,29 @@ const Profile = () => {
         setFollowing(response.data);
       }
     } catch (error) {
-      console.error("Takip edilenler yüklenirken hata:", error);
+      setFollowing([]);
     }
   };
 
-  const handleEdit = () => {
-    setEditing(true);
+  // Satın alınan ürünlerin id'lerini çek
+  const fetchOrders = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const userType = localStorage.getItem("userType");
+      if (userType === "BUYER") {
+        const response = await axios.get(
+          "http://localhost:8080/api/v1/buyer/orders",
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        const ids = response.data.map((order) => order.product.id);
+        setOrderedProductIds(ids);
+      }
+    } catch (error) {
+      setOrderedProductIds([]);
+    }
   };
+
+  const handleEdit = () => setEditing(true);
 
   const handleChange = (e) => {
     setFormData({
@@ -119,24 +130,19 @@ const Profile = () => {
     const file = e.target.files[0];
     if (file) {
       setSelectedFile(file);
-      // Önizleme URL'i oluştur
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewUrl(reader.result);
-      };
+      reader.onloadend = () => setPreviewUrl(reader.result);
       reader.readAsDataURL(file);
     }
   };
 
   const handleSaveProfilePicture = async () => {
     if (!selectedFile) return;
-
     try {
       setIsUploading(true);
       const token = localStorage.getItem("token");
       const formData = new FormData();
       formData.append("profilePicture", selectedFile);
-
       const response = await axios.post(
         `http://localhost:8080/api/v1/users/${id}/profile-picture`,
         formData,
@@ -147,13 +153,11 @@ const Profile = () => {
           },
         }
       );
-
       setUser(response.data);
       setSelectedFile(null);
       setPreviewUrl(null);
       setIsUploading(false);
     } catch (error) {
-      console.error("Profil fotoğrafı yüklenirken hata:", error);
       setError("Profil fotoğrafı yüklenirken bir hata oluştu.");
       setIsUploading(false);
     }
@@ -178,11 +182,9 @@ const Profile = () => {
           },
         }
       );
-
       setUser(response.data);
       setEditing(false);
     } catch (err) {
-      console.error("Profil güncellenirken hata:", err);
       if (err.response?.status === 403) {
         setError("Bu profili düzenleme yetkiniz yok.");
       } else {
@@ -202,9 +204,7 @@ const Profile = () => {
         }
       );
       fetchFollowing();
-    } catch (error) {
-      console.error("Takip işlemi başarısız:", error);
-    }
+    } catch (error) {}
   };
 
   const handleUnfollow = async (sellerId) => {
@@ -217,9 +217,7 @@ const Profile = () => {
         }
       );
       fetchFollowing();
-    } catch (error) {
-      console.error("Takipten çıkma işlemi başarısız:", error);
-    }
+    } catch (error) {}
   };
 
   const handleToggleFavorite = async (productId) => {
@@ -233,9 +231,7 @@ const Profile = () => {
         }
       );
       fetchFavorites();
-    } catch (error) {
-      console.error("Favori işlemi başarısız:", error);
-    }
+    } catch (error) {}
   };
 
   if (loading) return <div className="loading">Yükleniyor...</div>;
@@ -326,7 +322,7 @@ const Profile = () => {
               }`}
               onClick={() => setActiveTab("favorites")}
             >
-              <i className="fas fa-heart"></i> Favoriler ({favorites.length})
+              <i className="fas fa-heart"></i> Favoriler
             </button>
             <button
               className={`tab-button ${
@@ -431,53 +427,59 @@ const Profile = () => {
 
       {activeTab === "favorites" && (
         <div className="favorites-grid">
-          {favorites.length === 0 ? (
+          {favorites.filter(
+            (fav) => !orderedProductIds.includes(fav.product.id)
+          ).length === 0 ? (
             <div className="empty-state">
               <i className="fas fa-heart-broken"></i>
               <p>Henüz favori ürününüz bulunmuyor.</p>
             </div>
           ) : (
-            favorites.map((favorite) => {
-              const product = favorite.product; // Favorite objesinden product'ı al
-              return (
-                <div
-                  key={product.id}
-                  className="product-card"
-                  style={{ cursor: "pointer" }}
-                  onClick={() => navigate(`/products/${product.id}`)}
-                >
-                  <div className="product-image-profile">
-                    <img
-                      src={
-                        product.images && product.images.length > 0
-                          ? `http://localhost:8080/uploads/products/${
-                              product.id
-                            }/${product.images[0].split("/").pop()}`
-                          : "/placeholder.png"
-                      }
-                      alt={product.title}
-                    />
-                    <div className="product-price-tag">{product.price} TL</div>
+            favorites
+              .filter((fav) => !orderedProductIds.includes(fav.product.id))
+              .map((favorite) => {
+                const product = favorite.product;
+                return (
+                  <div
+                    key={product.id}
+                    className="product-card"
+                    style={{ cursor: "pointer" }}
+                    onClick={() => navigate(`/products/${product.id}`)}
+                  >
+                    <div className="product-image-profile">
+                      <img
+                        src={
+                          product.images && product.images.length > 0
+                            ? `http://localhost:8080/uploads/products/${
+                                product.id
+                              }/${product.images[0].split("/").pop()}`
+                            : "/placeholder.png"
+                        }
+                        alt={product.title}
+                      />
+                      <div className="product-price-tag">
+                        {product.price} TL
+                      </div>
+                    </div>
+                    <div className="product-info">
+                      <h3>{product.title}</h3>
+                      <p className="seller">
+                        <i className="fas fa-store"></i>{" "}
+                        {product.seller?.firstName || "Satıcı"}
+                      </p>
+                      <button
+                        className="favorite-button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleToggleFavorite(product.id);
+                        }}
+                      >
+                        <i className="fas fa-heart"></i> Favorilerden Çıkar
+                      </button>
+                    </div>
                   </div>
-                  <div className="product-info">
-                    <h3>{product.title}</h3>
-                    <p className="seller">
-                      <i className="fas fa-store"></i>{" "}
-                      {product.seller?.firstName || "Satıcı"}
-                    </p>
-                    <button
-                      className="favorite-button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleToggleFavorite(product.id);
-                      }}
-                    >
-                      <i className="fas fa-heart"></i> Favorilerden Çıkar
-                    </button>
-                  </div>
-                </div>
-              );
-            })
+                );
+              })
           )}
         </div>
       )}

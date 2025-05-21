@@ -256,3 +256,27 @@
     margin-top: 1rem;
   }
 }
+.cart-address-input {
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.cart-address-field {
+  padding: 0.8rem 1rem;
+  border: 1.5px solid #e9a480;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: #fff7f0;
+  color: #a86c4b;
+  transition: border-color 0.2s;
+}
+.cart-address-field:focus {
+  border-color: #a86c4b;
+  outline: none;
+}
+.cart-address-error {
+  color: #e44d26;
+  font-size: 0.95rem;
+  margin-top: 0.2rem;
+}

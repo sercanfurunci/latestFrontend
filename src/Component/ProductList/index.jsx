@@ -39,6 +39,7 @@ function ProductList() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userRole, setUserRole] = useState(null);
   const [offers, setOffers] = useState([]);
+  const [orders, setOrders] = useState([]);
   const navigate = useNavigate();
 
   const fetchFavorites = async () => {
@@ -56,6 +57,15 @@ function ProductList() {
       setFollowedSellers(followingRes.data.map((s) => s.id));
     } catch (error) {
       console.error("Takip edilenler alınamadı:", error);
+    }
+  };
+
+  const fetchOrders = async () => {
+    try {
+      const ordersRes = await api.get("/buyer/orders");
+      setOrders(ordersRes.data);
+    } catch (error) {
+      console.error("Siparişler alınamadı:", error);
     }
   };
 
@@ -79,8 +89,11 @@ function ProductList() {
         setCategories(categoriesRes.data);
 
         if (isLoggedIn && userRole === "BUYER") {
-          await fetchFavorites();
-          await fetchFollowing();
+          await Promise.all([
+            fetchFavorites(),
+            fetchFollowing(),
+            fetchOrders(),
+          ]);
           const offersRes = await api.get("/buyer/offers/my-offers");
           setOffers(offersRes.data);
         }
@@ -92,7 +105,6 @@ function ProductList() {
     };
 
     fetchData();
-    // eslint-disable-next-line
   }, [isLoggedIn, userRole]);
 
   const handleToggleFavorite = async (productId, event) => {
@@ -176,6 +188,14 @@ function ProductList() {
 
   const filteredAndSortedProducts = () => {
     let filtered = [...products];
+
+    // Sipariş oluşturulan ürünleri filtrele
+    if (isLoggedIn && userRole === "BUYER") {
+      const orderedProductIds = orders.map((order) => order.product.id);
+      filtered = filtered.filter(
+        (product) => !orderedProductIds.includes(product.id)
+      );
+    }
 
     if (selectedCategory !== "all") {
       filtered = filtered.filter(
@@ -389,7 +409,6 @@ function ProductList() {
                   <p className="main-product-list-category">
                     {product.category?.name}
                   </p>
-                  {/* <p className="main-product-list-price">{product.price} TL</p> */}
                   <div className="main-product-list-seller-info">
                     <img
                       src={

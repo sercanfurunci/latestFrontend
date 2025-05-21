@@ -30,6 +30,7 @@ function SellerProfile() {
   const [userRole, setUserRole] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [orderedProductIds, setOrderedProductIds] = useState([]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -104,6 +105,24 @@ function SellerProfile() {
     if (id) fetchSellerData();
   }, [id, isLoggedIn, userRole]);
 
+  // Satın alınan ürünlerin id'lerini çek
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const userType = localStorage.getItem("userType");
+        if (isLoggedIn && userType === "BUYER") {
+          const response = await api.get("/buyer/orders");
+          const ids = response.data.map((order) => order.product.id);
+          setOrderedProductIds(ids);
+        }
+      } catch (error) {
+        setOrderedProductIds([]);
+      }
+    };
+    fetchOrders();
+  }, [isLoggedIn]);
+
   const handleToggleFollow = async () => {
     if (!isLoggedIn) {
       navigate("/login");
@@ -177,6 +196,12 @@ function SellerProfile() {
       </div>
     );
   }
+
+  // Satın alınan ürünleri filtrele
+  const visibleProducts =
+    isLoggedIn && userRole === "BUYER"
+      ? products.filter((product) => !orderedProductIds.includes(product.id))
+      : products;
 
   return (
     <div className="seller-profile-container">
@@ -258,13 +283,13 @@ function SellerProfile() {
 
       <div className="seller-profile-products">
         <h2>Satıcının Ürünleri</h2>
-        {products.length === 0 ? (
+        {visibleProducts.length === 0 ? (
           <div className="seller-profile-no-products">
             <p>Henüz ürün bulunmuyor.</p>
           </div>
         ) : (
-          <div className="seller-profile-products-grid">
-            {products.map((product) => (
+          <div className="seller-profile-products-grid left-align">
+            {visibleProducts.map((product) => (
               <div
                 key={product.id}
                 className="seller-profile-product-card"

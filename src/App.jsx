@@ -1,3 +1,4 @@
+import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import Header from "./Component/Header";
 import Footer from "./Component/Footer";
@@ -86,6 +87,7 @@ function App() {
       await fetchUserProfile(token);
     }
   };
+
   const fetchUnreadMessages = async () => {
     const token = localStorage.getItem("token");
     if (!token) return;
@@ -127,12 +129,27 @@ function App() {
             element={user ? <Profile /> : <Navigate to="/login" />}
           />
           <Route path="/buyer/:id" element={<BuyerProfile />} />
+
+          {/* Admin Routes */}
           <Route
             path="/admin"
             element={
               user?.userType === "ADMIN" ? <Admin /> : <Navigate to="/" />
             }
           />
+          <Route
+            path="/admin/products/pending"
+            element={
+              user?.userType === "ADMIN" ? <Admin /> : <Navigate to="/" />
+            }
+          />
+          <Route
+            path="/admin/pending-products"
+            element={
+              user?.userType === "ADMIN" ? <Admin /> : <Navigate to="/" />
+            }
+          />
+
           {/* Satıcı dashboard'u için yeni route */}
           <Route
             path="/seller-dashboard"

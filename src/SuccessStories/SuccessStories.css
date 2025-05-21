@@ -412,3 +412,45 @@
     width: 100%;
   }
 }
+.story-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  /* Diğer mevcut stillerini koru */
+}
+
+.story-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1.2rem 1.2rem 1rem 1.2rem; /* Alt padding'i azalt */
+}
+
+.story-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  width: 100%;
+  justify-content: flex-start; /* Sola hizala */
+  margin-top: auto;
+  padding-top: 0.5rem;
+}
+
+.story-author-avatar {
+  margin-right: 0.5rem;
+}
+
+.author {
+  font-weight: 600;
+  color: #a86c4b;
+  margin-right: 1rem;
+}
+
+.date {
+  margin-left: auto;
+  color: #e7a7b7;
+  font-size: 0.95rem;
+  font-weight: 500;
+}

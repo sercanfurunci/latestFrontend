@@ -285,14 +285,13 @@
 }
 .seller-profile-products-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 1.5rem;
-  margin-top: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 24px;
+  margin: 20px auto 0 auto;
+  padding: 0 24px;
   width: 100%;
-  justify-items: center;
-  padding-left: 24px;
-  padding-right: 24px;
   box-sizing: border-box;
+  justify-items: start;
 }
 
 .seller-profile-product-card {
@@ -304,11 +303,9 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  min-width: 260px;
-  max-width: 320px;
   width: 100%;
+  max-width: 320px;
   border: none;
-  cursor: pointer;
 }
 
 @media (max-width: 900px) {

@@ -18,15 +18,15 @@ const Admin = () => {
   const [productCategoryFilter, setProductCategoryFilter] = useState("ALL");
   const [categories, setCategories] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [showEditForm, setShowEditForm] = useState(false);
-  const [editFormData, setEditFormData] = useState({
-    title: "",
-    price: "",
-    stock: "",
-    status: "",
-    categoryId: "",
-  });
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editStatus, setEditStatus] = useState("");
   const [successMessage, setSuccessMessage] = useState(null);
+
+  // Bekleyen ürünler için state'ler
+  const [pendingProducts, setPendingProducts] = useState([]);
+  const [selectedPendingProduct, setSelectedPendingProduct] = useState(null);
+  const [showPendingModal, setShowPendingModal] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState("");
 
   // Panel seçimi
   const [activePanel, setActivePanel] = useState("users");
@@ -34,10 +34,13 @@ const Admin = () => {
   useEffect(() => {
     if (activePanel === "users") {
       fetchUsers();
-    } else {
+    } else if (activePanel === "products") {
       fetchProducts();
       fetchCategories();
+    } else if (activePanel === "pending") {
+      fetchPendingProducts();
     }
+    // eslint-disable-next-line
   }, [
     currentPage,
     userType,
@@ -54,27 +57,15 @@ const Admin = () => {
         setError("Oturum süreniz dolmuş olabilir. Lütfen tekrar giriş yapın.");
         return;
       }
-
       const response = await axios.get(
         `http://localhost:8080/api/v1/admin/users?page=${currentPage}&size=10&userType=${userType}&search=${searchTerm}&sort=id,asc`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       setUsers(response.data.content);
       setTotalPages(response.data.totalPages);
       setLoading(false);
     } catch (err) {
-      console.error("Error fetching users:", err);
-      if (err.response?.status === 403) {
-        setError("Bu işlemi gerçekleştirmek için yetkiniz bulunmamaktadır.");
-      } else if (err.response?.status === 401) {
-        setError("Oturum süreniz dolmuş olabilir. Lütfen tekrar giriş yapın.");
-      } else {
-        setError("Kullanıcılar yüklenirken bir hata oluştu.");
-      }
+      setError("Kullanıcılar yüklenirken bir hata oluştu.");
       setLoading(false);
     }
   };
@@ -86,27 +77,15 @@ const Admin = () => {
         setError("Oturum süreniz dolmuş olabilir. Lütfen tekrar giriş yapın.");
         return;
       }
-
       const response = await axios.get(
         `http://localhost:8080/api/v1/admin/products?page=${currentPage}&size=10&category=${productCategoryFilter}&search=${productSearchTerm}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       setProducts(response.data.content);
       setTotalPages(response.data.totalPages);
       setLoading(false);
     } catch (err) {
-      console.error("Error fetching products:", err);
-      if (err.response?.status === 403) {
-        setError("Bu işlemi gerçekleştirmek için yetkiniz bulunmamaktadır.");
-      } else if (err.response?.status === 401) {
-        setError("Oturum süreniz dolmuş olabilir. Lütfen tekrar giriş yapın.");
-      } else {
-        setError("Ürünler yüklenirken bir hata oluştu.");
-      }
+      setError("Ürünler yüklenirken bir hata oluştu.");
       setLoading(false);
     }
   };
@@ -114,22 +93,37 @@ const Admin = () => {
   const fetchCategories = async () => {
     try {
       const token = localStorage.getItem("token");
+      if (!token) return;
+      const response = await axios.get(
+        "http://localhost:8080/api/v1/categories",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setCategories(response.data);
+    } catch (err) {}
+  };
+
+  const fetchPendingProducts = async () => {
+    try {
+      const token = localStorage.getItem("token");
       if (!token) {
         setError("Oturum süreniz dolmuş olabilir. Lütfen tekrar giriş yapın.");
         return;
       }
-
       const response = await axios.get(
-        "http://localhost:8080/api/v1/categories",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        "http://localhost:8080/api/v1/admin/products/pending",
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-      setCategories(response.data);
+      const products = Array.isArray(response.data)
+        ? response.data
+        : response.data.content || [];
+      setPendingProducts(products);
+      setLoading(false);
     } catch (err) {
-      console.error("Error fetching categories:", err);
+      setError("Bekleyen ürünler yüklenirken bir hata oluştu.");
+      setLoading(false);
+      setPendingProducts([]);
     }
   };
 
@@ -140,7 +134,6 @@ const Admin = () => {
         setError("Oturum süreniz dolmuş olabilir. Lütfen tekrar giriş yapın.");
         return;
       }
-
       const newStatus = currentStatus === "ACTIVE" ? "INACTIVE" : "ACTIVE";
       await axios.put(
         `http://localhost:8080/api/v1/admin/users/${userId}/status`,
@@ -160,48 +153,27 @@ const Admin = () => {
       );
       fetchUsers();
     } catch (err) {
-      console.error("Error updating user status:", err);
-      if (err.response?.status === 403) {
-        setError("Bu işlemi gerçekleştirmek için yetkiniz bulunmamaktadır.");
-      } else if (err.response?.status === 401) {
-        setError("Oturum süreniz dolmuş olabilir. Lütfen tekrar giriş yapın.");
-      } else {
-        setError("Kullanıcı durumu güncellenirken bir hata oluştu.");
-      }
+      setError("Kullanıcı durumu güncellenirken bir hata oluştu.");
     }
   };
 
-  const handleEditClick = (product) => {
-    setSelectedProduct(product);
-    setEditFormData({
-      title: product.title,
-      price: product.price,
-      stock: product.stock,
-      status: product.status,
-      categoryId: product.category.id,
-    });
-    setShowEditForm(true);
-  };
-
-  const handleProductUpdate = async () => {
+  // SADECE ÜRÜN DURUMU GÜNCELLEME
+  const handleProductStatusChange = async (productId, newStatus) => {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
         setError("Oturum süreniz dolmuş olabilir. Lütfen tekrar giriş yapın.");
         return;
       }
-
-      const updateData = {
-        title: editFormData.title,
-        price: parseFloat(editFormData.price),
-        stock: parseInt(editFormData.stock),
-        status: editFormData.status,
-        categoryId: parseInt(editFormData.categoryId),
-      };
-
-      const response = await axios.put(
-        `http://localhost:8080/api/v1/admin/products/${selectedProduct.id}`,
-        updateData,
+      await axios.put(
+        `http://localhost:8080/api/v1/admin/products/${productId}/status`,
+        {
+          status: newStatus,
+          message:
+            newStatus === "AVAILABLE"
+              ? "Ürün aktifleştirildi"
+              : "Ürün pasifleştirildi",
+        },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -209,66 +181,102 @@ const Admin = () => {
           },
         }
       );
-
-      setShowEditForm(false);
       await fetchProducts();
-      setSuccessMessage("Ürün başarıyla güncellendi");
+      setSuccessMessage("Ürün durumu başarıyla güncellendi");
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
-      console.error("Update error details:", {
-        message: err.message,
-        status: err.response?.status,
-        data: err.response?.data,
-        headers: err.config?.headers,
-      });
-
-      if (err.response?.status === 403) {
-        setError(
-          "Bu işlemi gerçekleştirmek için yetkiniz bulunmamaktadır. Lütfen admin olarak giriş yaptığınızdan emin olun."
-        );
-      } else if (err.response?.status === 401) {
-        setError("Oturum süreniz dolmuş olabilir. Lütfen tekrar giriş yapın.");
-      } else {
-        setError(
-          err.response?.data?.message || "Ürün güncellenirken bir hata oluştu."
-        );
-      }
+      setError("Ürün durumu güncellenirken bir hata oluştu.");
     }
   };
 
-  const handleProductDelete = async (productId) => {
-    if (window.confirm("Bu ürünü silmek istediğinizden emin misiniz?")) {
-      try {
-        const token = localStorage.getItem("token");
-        console.log("Using token:", token); // Debug log
+  const handleDeleteProduct = async (productId) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("Oturum süreniz dolmuş olabilir. Lütfen tekrar giriş yapın.");
+        return;
+      }
+      await axios.delete(
+        `http://localhost:8080/api/v1/admin/products/${productId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      await fetchProducts();
+      setSuccessMessage("Ürün başarıyla silindi");
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (err) {
+      setError("Ürün silinirken bir hata oluştu.");
+    }
+  };
 
-        const reason = "Admin tarafından silindi";
-        const url = `http://localhost:8080/api/v1/admin/products/${productId}?reason=${encodeURIComponent(
-          reason
-        )}`;
-        console.log("Request URL:", url); // Debug log
-
-        const response = await axios.delete(url, {
+  const handleApprove = async (productId) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("Oturum süreniz dolmuş olabilir. Lütfen tekrar giriş yapın.");
+        return;
+      }
+      await axios.post(
+        `http://localhost:8080/api/v1/admin/products/${productId}/approve`,
+        { message: "Ürününüz başarıyla onaylandı" },
+        {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-        });
-
-        console.log("Response:", response); // Debug log
-        setProducts(products.filter((product) => product.id !== productId));
-        alert("Ürün başarıyla silindi");
-      } catch (error) {
-        console.error("Error deleting product:", error);
-        console.error("Error details:", {
-          status: error.response?.status,
-          data: error.response?.data,
-          headers: error.response?.headers,
-          message: error.response?.data || error.message,
-        });
-        alert(error.response?.data || "Ürün silinirken bir hata oluştu");
-      }
+        }
+      );
+      setPendingProducts(pendingProducts.filter((p) => p.id !== productId));
+      setShowPendingModal(false);
+      setSelectedPendingProduct(null);
+      setRejectionReason("");
+      setSuccessMessage("Ürün başarıyla onaylandı");
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (err) {
+      setError("Ürün onaylanırken bir hata oluştu.");
     }
+  };
+
+  const handleReject = async (productId) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("Oturum süreniz dolmuş olabilir. Lütfen tekrar giriş yapın.");
+        return;
+      }
+      await axios.post(
+        `http://localhost:8080/api/v1/admin/products/${productId}/reject`,
+        { message: rejectionReason || "Belirtilmedi" },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      setPendingProducts(pendingProducts.filter((p) => p.id !== productId));
+      setShowPendingModal(false);
+      setSelectedPendingProduct(null);
+      setRejectionReason("");
+      setSuccessMessage("Ürün başarıyla reddedildi");
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (err) {
+      setError("Ürün reddedilirken bir hata oluştu.");
+    }
+  };
+
+  const openPendingModal = (product) => {
+    setSelectedPendingProduct(product);
+    setShowPendingModal(true);
+  };
+
+  const closePendingModal = () => {
+    setShowPendingModal(false);
+    setSelectedPendingProduct(null);
+    setRejectionReason("");
   };
 
   const handleSearch = (e) => {
@@ -303,6 +311,7 @@ const Admin = () => {
           >
             <option value="users">Kullanıcı Yönetimi</option>
             <option value="products">Ürün Yönetimi</option>
+            <option value="pending">Bekleyen Ürünler</option>
           </select>
         </div>
       </div>
@@ -343,7 +352,55 @@ const Admin = () => {
         </div>
       </div>
 
-      {activePanel === "users" ? (
+      {activePanel === "pending" ? (
+        <div className="admin-pending-products">
+          {loading ? (
+            <div className="admin-loading">Yükleniyor...</div>
+          ) : pendingProducts && pendingProducts.length > 0 ? (
+            <div className="products-grid">
+              {pendingProducts.map((product) => (
+                <div key={product.id} className="product-card">
+                  <div className="product-image-container">
+                    <img
+                      src={
+                        product.images && product.images.length > 0
+                          ? `http://localhost:8080${product.images[0]}`
+                          : "/placeholder-image.jpg"
+                      }
+                      alt={product.title}
+                      className="product-image"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = "/placeholder-image.jpg";
+                      }}
+                    />
+                    <span className="product-status-badge pending">
+                      İncelemede
+                    </span>
+                  </div>
+                  <div className="product-info">
+                    <h3>{product.title}</h3>
+                    <div className="seller-info">
+                      Satıcı: {product.seller?.firstName}{" "}
+                      {product.seller?.lastName}
+                    </div>
+                    <div className="price">{product.price} TL</div>
+                    <div className="stock">Stok: {product.stock}</div>
+                    <button
+                      className="view-details-button"
+                      onClick={() => openPendingModal(product)}
+                    >
+                      Detayları Görüntüle
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="no-products">Bekleyen ürün bulunmamaktadır.</div>
+          )}
+        </div>
+      ) : activePanel === "users" ? (
         <div className="admin-users-table">
           <table>
             <thead>
@@ -448,13 +505,16 @@ const Admin = () => {
                   <td>
                     <button
                       className="admin-edit-btn"
-                      onClick={() => handleEditClick(product)}
+                      onClick={() => {
+                        setSelectedProduct(product);
+                        setShowEditModal(true);
+                      }}
                     >
                       Düzenle
                     </button>
                     <button
                       className="admin-delete-btn"
-                      onClick={() => handleProductDelete(product.id)}
+                      onClick={() => handleDeleteProduct(product.id)}
                     >
                       Sil
                     </button>
@@ -466,76 +526,125 @@ const Admin = () => {
         </div>
       )}
 
-      {showEditForm && (
+      {showEditModal && selectedProduct && (
         <div className="admin-edit-form-overlay">
           <div className="admin-edit-form">
-            <h3>Ürün Düzenle</h3>
+            <h3>Ürün Durumunu Düzenle</h3>
             <div className="admin-form-group">
-              <label>Başlık:</label>
-              <input
-                type="text"
-                value={editFormData.title}
-                onChange={(e) =>
-                  setEditFormData({ ...editFormData, title: e.target.value })
-                }
-              />
-            </div>
-            <div className="admin-form-group">
-              <label>Fiyat:</label>
-              <input
-                type="number"
-                value={editFormData.price}
-                onChange={(e) =>
-                  setEditFormData({ ...editFormData, price: e.target.value })
-                }
-              />
-            </div>
-            <div className="admin-form-group">
-              <label>Stok:</label>
-              <input
-                type="number"
-                value={editFormData.stock}
-                onChange={(e) =>
-                  setEditFormData({ ...editFormData, stock: e.target.value })
-                }
-              />
-            </div>
-            <div className="admin-form-group">
-              <label>Kategori:</label>
+              <label>Durum</label>
               <select
-                value={editFormData.categoryId}
-                onChange={(e) =>
-                  setEditFormData({
-                    ...editFormData,
-                    categoryId: e.target.value,
-                  })
-                }
-              >
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="admin-form-group">
-              <label>Durum:</label>
-              <select
-                value={editFormData.status}
-                onChange={(e) =>
-                  setEditFormData({ ...editFormData, status: e.target.value })
-                }
+                value={editStatus || selectedProduct.status}
+                onChange={(e) => setEditStatus(e.target.value)}
               >
                 <option value="AVAILABLE">Aktif</option>
                 <option value="INACTIVE">Pasif</option>
-                <option value="PENDING_REVIEW">Onay Bekliyor</option>
                 <option value="REJECTED">Reddedildi</option>
-                <option value="REMOVED">Silindi</option>
               </select>
             </div>
             <div className="admin-form-buttons">
-              <button onClick={handleProductUpdate}>Kaydet</button>
-              <button onClick={() => setShowEditForm(false)}>İptal</button>
+              <button
+                onClick={async () => {
+                  await handleProductStatusChange(
+                    selectedProduct.id,
+                    editStatus || selectedProduct.status
+                  );
+                  setShowEditModal(false);
+                  setSelectedProduct(null);
+                  setEditStatus("");
+                }}
+              >
+                Kaydet
+              </button>
+              <button
+                onClick={() => {
+                  setShowEditModal(false);
+                  setSelectedProduct(null);
+                  setEditStatus("");
+                }}
+              >
+                İptal
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showPendingModal && selectedPendingProduct && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h2>{selectedPendingProduct.title}</h2>
+              <button className="close-button" onClick={closePendingModal}>
+                &times;
+              </button>
+            </div>
+            <div className="product-details">
+              <div className="product-images">
+                {selectedPendingProduct.images &&
+                  selectedPendingProduct.images.map((image, index) => (
+                    <img
+                      key={index}
+                      src={`http://localhost:8080${image}`}
+                      alt={`${selectedPendingProduct.title} - ${index + 1}`}
+                      className="detail-image"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = "/placeholder-image.jpg";
+                      }}
+                    />
+                  ))}
+              </div>
+              <div className="product-info-details">
+                <div className="description">
+                  <h4>Ürün Açıklaması</h4>
+                  <p>{selectedPendingProduct.description}</p>
+                </div>
+                <div className="seller-details">
+                  <h4>Satıcı Bilgileri</h4>
+                  <p>
+                    İsim: {selectedPendingProduct.seller.firstName}{" "}
+                    {selectedPendingProduct.seller.lastName}
+                  </p>
+                  <p>E-posta: {selectedPendingProduct.seller.email}</p>
+                  <p>
+                    Telefon:{" "}
+                    {selectedPendingProduct.seller.phoneNumber ||
+                      "Belirtilmemiş"}
+                  </p>
+                </div>
+                <div className="product-specs">
+                  <h4>Ürün Özellikleri</h4>
+                  <p>Fiyat: {selectedPendingProduct.price} TL</p>
+                  <p>Stok: {selectedPendingProduct.stock}</p>
+                  <p>Kategori: {selectedPendingProduct.category.name}</p>
+                </div>
+                <div className="rejection-reason">
+                  <label htmlFor="rejectionReason">
+                    Red Nedeni (Opsiyonel):
+                  </label>
+                  <textarea
+                    id="rejectionReason"
+                    value={rejectionReason}
+                    onChange={(e) => setRejectionReason(e.target.value)}
+                    placeholder="Ürünü reddetme nedeninizi yazın..."
+                    rows="4"
+                  />
+                </div>
+                <div className="action-buttons">
+                  <button
+                    className="approve-button"
+                    onClick={() => handleApprove(selectedPendingProduct.id)}
+                  >
+                    Onayla
+                  </button>
+                  <button
+                    className="reject-button"
+                    onClick={() => handleReject(selectedPendingProduct.id)}
+                  >
+                    Reddet
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
