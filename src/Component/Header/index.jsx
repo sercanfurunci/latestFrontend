@@ -438,7 +438,7 @@ const Header = ({
                         handleNavigation("/seller-dashboard");
                       }}
                     >
-                      Kullanici Paneli
+                      Kullanıcı Paneli
                     </Link>
                   )}
                   {user.userType === "SELLER" && (

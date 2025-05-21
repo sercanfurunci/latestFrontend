@@ -719,7 +719,6 @@ const ProductDetail = () => {
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <h3>Ürünü Düzenle</h3>
             <form onSubmit={handleEditSubmit}>
-              <label>Ürün Adı</label>
               <input
                 value={editFormData.title}
                 onChange={(e) =>
@@ -727,8 +726,6 @@ const ProductDetail = () => {
                 }
                 required
               />
-
-              <label>Ürün Açıklaması</label>
               <textarea
                 value={editFormData.description}
                 onChange={(e) =>
@@ -739,8 +736,6 @@ const ProductDetail = () => {
                 }
                 required
               />
-
-              <label>Fiyat (TL)</label>
               <input
                 type="number"
                 value={editFormData.price}
@@ -749,8 +744,6 @@ const ProductDetail = () => {
                 }
                 required
               />
-
-              <label>Stok</label>
               <input
                 type="number"
                 value={editFormData.stock}
@@ -759,8 +752,6 @@ const ProductDetail = () => {
                 }
                 required
               />
-
-              <label>Kargo Detayları</label>
               <textarea
                 value={editFormData.shippingDetails}
                 onChange={(e) =>
@@ -770,7 +761,6 @@ const ProductDetail = () => {
                   })
                 }
               />
-
               {/* Kategori seçimi ve diğer alanlar */}
               <button type="submit">Kaydet</button>
               <button type="button" onClick={() => setShowEditModal(false)}>

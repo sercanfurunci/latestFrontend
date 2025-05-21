@@ -122,7 +122,7 @@ const Home = () => {
       <section className="featured-section">
         <div className="section-header">
           <h2>Öne Çıkan Eğitim İçerikleri</h2>
-          <Link to="/educational-content" className="view-all-link">
+          <Link to="/educational-contents" className="view-all-link">
             Tümünü Gör
           </Link>
         </div>
